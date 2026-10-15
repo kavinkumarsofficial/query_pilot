@@ -8,7 +8,7 @@ QueryPilot is a Flutter server-state package for caching, stale-time handling, b
 
 ```yaml
 dependencies:
-  query_pilot: ^1.0.0+1
+  query_pilot: ^1.0.1
 ```
 
 ## Quick start
