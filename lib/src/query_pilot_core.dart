@@ -2,21 +2,29 @@ import 'dart:async';
 
 import 'package:flutter/widgets.dart';
 
+import 'mutation_controller.dart';
 import 'query_cache.dart';
 import 'query_controller.dart';
 import 'query_key.dart';
 import 'query_options.dart';
-import 'mutation_controller.dart';
 
+/// The central coordinator that owns the [QueryCache], creates queries/mutations, and manages invalidation.
 class QueryPilot {
+  /// Creates a [QueryPilot] instance. An optional custom [now] clock function can be provided for testing.
   QueryPilot({DateTime Function()? now}) : _now = now ?? DateTime.now;
 
   final DateTime Function() _now;
+
+  /// The cache holding all active and retained [QueryController] instances.
   final QueryCache cache = QueryCache();
+
+  /// Route observer to plug into [MaterialApp.navigatorObservers] for automatic focus refetching.
   late final QueryPilotRouteObserver routeObserver = QueryPilotRouteObserver();
 
+  /// Returns the current timestamp according to the clock provider.
   DateTime now() => _now();
 
+  /// Creates or retrieves a cached [QueryController] for the given [queryKey].
   QueryController<T> query<T>({
     required List<Object?> queryKey,
     required FutureOr<T> Function() queryFn,
@@ -39,6 +47,7 @@ class QueryPilot {
     return controller;
   }
 
+  /// Creates a [MutationController] for performing typed async operations.
   MutationController<TData, TVariables> mutation<TData, TVariables>({
     required FutureOr<TData> Function(TVariables variables) mutationFn,
     MutationOptions<TData, TVariables> options = const MutationOptions(),
@@ -50,9 +59,11 @@ class QueryPilot {
     );
   }
 
+  /// Retrieves an existing cached [QueryController] for [queryKey], or returns null if not present.
   QueryController<T>? getQuery<T>(List<Object?> queryKey) =>
       cache.get<T>(queryKey);
 
+  /// Marks matching query entries as invalidated and optionally initiates a background refetch.
   void invalidateQuery(
     List<Object?> queryKey, {
     bool exact = true,
@@ -64,16 +75,19 @@ class QueryPilot {
     }
   }
 
+  /// Invalidates queries matching [queryKey]. By default matches prefix segments ([exact] is false).
   void invalidateQueries(
     List<Object?> queryKey, {
     bool exact = false,
     bool refetch = true,
   }) => invalidateQuery(queryKey, exact: exact, refetch: refetch);
 
+  /// Clears all entries in [cache] and disposes cached controllers.
   void clear() {
     cache.clear();
   }
 
+  /// Directly updates cached data for [queryKey] using the [updater] transform function.
   void updateQueryData<T>(
     List<Object?> queryKey,
     T? Function(T? current) updater,
@@ -84,6 +98,7 @@ class QueryPilot {
     }
   }
 
+  /// Notifies active controllers with listeners that the host application resumed.
   void handleAppResumed() {
     for (final controller in cache.values) {
       if (controller.hasActiveListeners) {
@@ -92,6 +107,7 @@ class QueryPilot {
     }
   }
 
+  /// Notifies active controllers with listeners that route focus returned.
   void handleAppFocused() {
     for (final controller in cache.values) {
       if (controller.hasActiveListeners) {
@@ -101,4 +117,5 @@ class QueryPilot {
   }
 }
 
+/// A [RouteObserver] that tracks route navigation to notify [QueryBuilder] when screens regain focus.
 class QueryPilotRouteObserver extends RouteObserver<ModalRoute<dynamic>> {}

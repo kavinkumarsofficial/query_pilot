@@ -2,12 +2,20 @@ import 'package:flutter/widgets.dart';
 
 import 'query_pilot_core.dart';
 
+/// Provides a [QueryPilot] instance to descendants in the widget tree and listens to app lifecycle events.
 class QueryPilotScope extends StatefulWidget {
+  /// Creates a [QueryPilotScope].
   const QueryPilotScope({super.key, required this.pilot, required this.child});
 
+  /// The [QueryPilot] client instance to provide down the widget tree.
   final QueryPilot pilot;
+
+  /// The child widget.
   final Widget child;
 
+  /// Obtains the closest [QueryPilot] instance from the given [context].
+  ///
+  /// Throws a [FlutterError] if no [QueryPilotScope] ancestor exists.
   static QueryPilot of(BuildContext context) {
     final scope = context
         .dependOnInheritedWidgetOfExactType<_QueryPilotInherited>();
@@ -20,6 +28,7 @@ class QueryPilotScope extends StatefulWidget {
     return scope.pilot;
   }
 
+  /// Obtains the closest [QueryPilot] instance from the given [context], or null if none is found.
   static QueryPilot? maybeOf(BuildContext context) {
     return context
         .dependOnInheritedWidgetOfExactType<_QueryPilotInherited>()

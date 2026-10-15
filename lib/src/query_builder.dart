@@ -9,6 +9,7 @@ import 'query_pilot_core.dart';
 import 'query_pilot_scope.dart';
 import 'query_state.dart';
 
+/// Builder function used by [QueryBuilder] to build widgets according to query state.
 typedef QueryWidgetBuilder<T> =
     Widget Function(
       BuildContext context,
@@ -16,7 +17,9 @@ typedef QueryWidgetBuilder<T> =
       QueryController<T> controller,
     );
 
+/// A Flutter widget that subscribes to a query, rebuilds on state changes, and responds to route focus.
 class QueryBuilder<T> extends StatefulWidget {
+  /// Creates a [QueryBuilder].
   const QueryBuilder({
     super.key,
     required this.queryKey,
@@ -26,10 +29,19 @@ class QueryBuilder<T> extends StatefulWidget {
     this.pilot,
   });
 
+  /// The unique key segments identifying the target query.
   final List<Object?> queryKey;
+
+  /// The asynchronous function providing data for the query.
   final FutureOr<T> Function() queryFn;
+
+  /// Options governing query caching, stale time, and auto-refetch triggers.
   final QueryOptions options;
+
+  /// The widget builder called with the current query state.
   final QueryWidgetBuilder<T> builder;
+
+  /// Optional [QueryPilot] instance override. If null, resolved via [QueryPilotScope.of].
   final QueryPilot? pilot;
 
   @override

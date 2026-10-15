@@ -1,5 +1,5 @@
 name: query_pilot
-description: Fetch smart. Cache right. Stay fresh.
+description: A Flutter server-state management library for caching, stale-time handling, background refetching, and optimistic mutations.
 homepage: https://github.com/kavinkumarsofficial/query_pilot
 repository: https://github.com/kavinkumarsofficial/query_pilot
 issue_tracker: https://github.com/kavinkumarsofficial/query_pilot/issues

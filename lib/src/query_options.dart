@@ -1,6 +1,8 @@
 import 'retry_policy.dart';
 
+/// Configuration options for controlling query execution, caching, and lifecycle refreshes.
 class QueryOptions {
+  /// Creates a set of [QueryOptions].
   const QueryOptions({
     this.enabled = true,
     this.staleTime = Duration.zero,
@@ -13,14 +15,31 @@ class QueryOptions {
     this.retryPolicy = const RetryPolicy.none(),
   });
 
+  /// Whether the query is actively enabled to fetch data.
   final bool enabled;
+
+  /// The duration data remains fresh before becoming stale.
   final Duration staleTime;
+
+  /// The duration inactive queries are kept in memory before being garbage collected.
   final Duration cacheTime;
+
+  /// Whether stale queries should refetch when a new subscriber mounts.
   final bool refetchOnMount;
+
+  /// Whether the query should refetch when its route regains navigation focus.
   final bool refetchOnFocus;
+
+  /// Whether to refetch on focus even if data is still fresh within [staleTime].
   final bool refetchOnFocusWhenFresh;
+
+  /// Whether the query should refetch when the app resumes from the background.
   final bool refetchOnResume;
+
+  /// Whether to refetch on app resume even if data is still fresh within [staleTime].
   final bool refetchOnResumeWhenFresh;
+
+  /// Retry configuration applied when query execution encounters an error.
   final RetryPolicy retryPolicy;
 
   @override
@@ -49,6 +68,7 @@ class QueryOptions {
     retryPolicy,
   );
 
+  /// Creates a copy of this [QueryOptions] with optional overrides.
   QueryOptions copyWith({
     bool? enabled,
     Duration? staleTime,

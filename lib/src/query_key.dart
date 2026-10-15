@@ -1,11 +1,16 @@
+/// A structured, composite key used to uniquely identify queries in [QueryCache].
 class QueryKey {
+  /// Creates a [QueryKey] with the given [segments].
   QueryKey(Iterable<Object?> segments)
     : segments = List<Object?>.unmodifiable(segments);
 
+  /// Creates a [QueryKey] from a list of [segments].
   factory QueryKey.fromList(List<Object?> segments) => QueryKey(segments);
 
+  /// The immutable list of segments identifying this query.
   final List<Object?> segments;
 
+  /// Returns `true` if this key starts with all segments in [prefix].
   bool startsWith(QueryKey prefix) {
     if (prefix.segments.length > segments.length) {
       return false;

@@ -1,3 +1,5 @@
+// ignore_for_file: prefer_initializing_formals
+
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
@@ -6,14 +8,18 @@ import 'query_key.dart';
 import 'query_options.dart';
 import 'query_state.dart';
 
+/// Manages the state, fetching, caching, deduplication, and lifecycle of a single query.
 class QueryController<T> extends ChangeNotifier {
+  /// Creates a [QueryController] for a given [queryKey] and execution function.
   QueryController({
     required this.pilot,
     required this.queryKey,
-    required this._queryFn,
-    required this._options,
+    required FutureOr<T> Function() queryFn,
+    required QueryOptions options,
     QueryState<T>? initialState,
-  }) : _state =
+  }) : _queryFn = queryFn,
+       _options = options,
+       _state =
            initialState ??
            QueryState<T>(
              status: QueryStatus.idle,
@@ -26,7 +32,10 @@ class QueryController<T> extends ChangeNotifier {
     }
   }
 
+  /// The parent [QueryPilot] instance managing this controller.
   final dynamic pilot;
+
+  /// The unique [QueryKey] identifying this query.
   final QueryKey queryKey;
 
   FutureOr<T> Function() _queryFn;
@@ -39,9 +48,16 @@ class QueryController<T> extends ChangeNotifier {
   Timer? _gcTimer;
   bool _invalidated = false;
 
+  /// The current state snapshot, automatically evaluated for freshness.
   QueryState<T> get state => _refreshStaleState();
+
+  /// The active [QueryOptions] configuration.
   QueryOptions get options => _options;
+
+  /// Whether this controller has been disposed.
   bool get isDisposed => _disposed;
+
+  /// Whether there are one or more active widget listeners attached.
   bool get hasActiveListeners => _listenerCount > 0;
 
   @override
@@ -63,6 +79,7 @@ class QueryController<T> extends ChangeNotifier {
     }
   }
 
+  /// Updates the query function and/or options for this controller.
   void updateConfiguration({
     FutureOr<T> Function()? queryFn,
     QueryOptions? options,
@@ -76,6 +93,7 @@ class QueryController<T> extends ChangeNotifier {
     state;
   }
 
+  /// Initiates a fetch of query data with deduplication and state updates.
   Future<T> fetch({
     bool force = false,
     bool background = false,
@@ -178,16 +196,19 @@ class QueryController<T> extends ChangeNotifier {
     return completer.future;
   }
 
+  /// Forces a refetch of query data, preserving existing data in the background.
   Future<T> refetch() {
     final currentState = state;
     return fetch(force: true, background: currentState.hasData);
   }
 
+  /// Retries the query fetch, typically called from an error view.
   Future<T> retry() {
     final currentState = state;
     return fetch(force: true, background: currentState.hasData);
   }
 
+  /// Marks this query as invalidated and optionally triggers a background refetch.
   void invalidate({bool refetch = true}) {
     final currentState = state;
     _invalidated = true;
@@ -197,6 +218,7 @@ class QueryController<T> extends ChangeNotifier {
     }
   }
 
+  /// Invoked when navigation focus returns to the route observing this query.
   void onFocus() {
     final currentState = state;
     if (!_options.enabled || !_options.refetchOnFocus || !hasActiveListeners) {
@@ -210,6 +232,7 @@ class QueryController<T> extends ChangeNotifier {
     _triggerFetch(background: currentState.hasData);
   }
 
+  /// Invoked when the app resumes from the background state.
   void onResume() {
     final currentState = state;
     if (!_options.enabled || !_options.refetchOnResume || !hasActiveListeners) {
@@ -223,11 +246,13 @@ class QueryController<T> extends ChangeNotifier {
     _triggerFetch(background: currentState.hasData);
   }
 
+  /// Marks the current query state as stale.
   void markStale() {
     _invalidated = true;
     _setState(_state.copyWith(isStale: true));
   }
 
+  /// Directly updates the cached data using the provided [updater] callback.
   void updateData(T? Function(T? current) updater) {
     final updated = updater(_state.data);
     _setState(
